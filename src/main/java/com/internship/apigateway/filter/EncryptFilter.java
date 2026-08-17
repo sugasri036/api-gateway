@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-@Component("encryptFilter")
+//@Component("encryptFilter")
 public class EncryptFilter implements GlobalFilter, Ordered {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
