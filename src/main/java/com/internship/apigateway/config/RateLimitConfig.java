@@ -1,8 +1,10 @@
 package com.internship.apigateway.config;
 
+import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import reactor.core.publisher.Mono;
 
 @Configuration
 public class RateLimitConfig {
@@ -10,5 +12,21 @@ public class RateLimitConfig {
     @Bean
     public RedisRateLimiter redisRateLimiter() {
         return new RedisRateLimiter(1, 2);
+    }
+
+    @Bean(name = "ipKeyResolver")
+    public KeyResolver ipKeyResolver() {
+        return exchange -> {
+            if (exchange.getRequest().getRemoteAddress() == null) {
+                return Mono.just("unknown");
+            }
+
+            return Mono.just(
+                    exchange.getRequest()
+                            .getRemoteAddress()
+                            .getAddress()
+                            .getHostAddress()
+            );
+        };
     }
 }
