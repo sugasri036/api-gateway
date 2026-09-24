@@ -34,5 +34,5 @@ build/
 .env
 
 # Kubernetes secrets
-**/secret.yaml
-**/*api-gateway-secret.yaml
+
+**/*secret.yaml
