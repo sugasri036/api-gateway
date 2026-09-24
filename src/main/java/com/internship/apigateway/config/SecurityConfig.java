@@ -39,6 +39,16 @@ public class SecurityConfig {
                 // =====================================================
 
                 .authorizeExchange(exchange -> exchange
+                         // -------------------------------------------------
+                        // CORS PREFLIGHT
+                       // -------------------------------------------------
+
+                      .pathMatchers(
+                              HttpMethod.OPTIONS,
+                               "/**"
+                       )
+                      .permitAll()
+
 
                         // -------------------------------------------------
                         // ACTUATOR HEALTH
