@@ -3,6 +3,8 @@ package com.internship.apigateway.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import org.springframework.http.HttpMethod;
+
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 
@@ -18,36 +20,152 @@ public class SecurityConfig {
 
         return http
 
-                // REST API -> CSRF not required
+                // =====================================================
+                // REST API
+                // =====================================================
+
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
 
-                // Disable browser authentication
-                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
+                .httpBasic(
+                        ServerHttpSecurity.HttpBasicSpec::disable
+                )
 
-                .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
+                .formLogin(
+                        ServerHttpSecurity.FormLoginSpec::disable
+                )
+
+                // =====================================================
+                // AUTHORIZATION
+                // =====================================================
 
                 .authorizeExchange(exchange -> exchange
 
-                        // Payment fallback should always be accessible
-                        .pathMatchers("/payment-fallback")
+                        // -------------------------------------------------
+                        // ACTUATOR HEALTH
+                        // -------------------------------------------------
+
+                        .pathMatchers(
+                                "/actuator/health",
+                                "/actuator/health/**"
+                        )
                         .permitAll()
 
-                        // Actuator health
-                        .pathMatchers("/actuator/health")
+                        // -------------------------------------------------
+                        // PAYMENT FALLBACK
+                        // -------------------------------------------------
+
+                        .pathMatchers(
+                                "/payment-fallback"
+                        )
                         .permitAll()
 
-                        // Payment APIs require JWT
-                        .pathMatchers("/payments/**")
+                        // -------------------------------------------------
+                        // AUTH SERVICE - PUBLIC
+                        // -------------------------------------------------
+
+                        .pathMatchers(
+                                "/api/auth/register",
+                                "/api/auth/login",
+                                "/api/auth/forgot-password",
+                                "/api/auth/forgot-password/verify",
+                                "/api/auth/forgot-password/reset"
+                        )
                         .permitAll()
 
-                        // Other endpoints
+                        // -------------------------------------------------
+                        // GOOGLE OAUTH - PUBLIC
+                        // -------------------------------------------------
+
+                        .pathMatchers(
+                                "/oauth2/**",
+                                "/login/**"
+                        )
+                        .permitAll()
+
+                        // -------------------------------------------------
+                        // FUND READ OPERATIONS - PUBLIC
+                        // -------------------------------------------------
+
+                        .pathMatchers(
+                                HttpMethod.GET,
+                                "/api/funds",
+                                "/api/funds/**"
+                        )
+                        .permitAll()
+
+                        // -------------------------------------------------
+                        // FUND WRITE OPERATIONS - AUTHENTICATED
+                        // -------------------------------------------------
+
+                        .pathMatchers(
+                                HttpMethod.POST,
+                                "/api/funds",
+                                "/api/funds/**"
+                        )
+                        .authenticated()
+
+                        .pathMatchers(
+                                HttpMethod.PUT,
+                                "/api/funds/**"
+                        )
+                        .authenticated()
+
+                        .pathMatchers(
+                                HttpMethod.DELETE,
+                                "/api/funds/**"
+                        )
+                        .authenticated()
+
+                        // -------------------------------------------------
+                        // ORDER SERVICE
+                        // -------------------------------------------------
+
+                        .pathMatchers(
+                                "/api/orders/**"
+                        )
+                        .authenticated()
+
+                        // -------------------------------------------------
+                        // PAYMENT SERVICE
+                        // -------------------------------------------------
+
+                        .pathMatchers(
+                                "/api/payments/**"
+                        )
+                        .authenticated()
+
+                        // -------------------------------------------------
+                        // OTP
+                        // -------------------------------------------------
+                        //
+                        // OTP is used internally by Auth Service.
+                        // It should NOT be exposed publicly through
+                        // the API Gateway.
+                        //
+
+                        .pathMatchers(
+                                "/api/otp/**"
+                        )
+                        .denyAll()
+
+                        // -------------------------------------------------
+                        // EVERYTHING ELSE
+                        // -------------------------------------------------
+
                         .anyExchange()
-                        .permitAll()
+                        .authenticated()
                 )
 
-                // JWT authentication
-                .oauth2ResourceServer(oauth2 ->
-                        oauth2.jwt(jwt -> {})
+                // =====================================================
+                // JWT
+                // =====================================================
+
+                .oauth2ResourceServer(
+                        oauth2 ->
+                                oauth2.jwt(
+                                        jwt -> {
+                                        }
+                                )
                 )
 
                 .build();
